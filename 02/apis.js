@@ -1,18 +1,50 @@
 // api.js
-const { users } = require("./fakeDb");
+const { localUsers } = require("./fakeDb");
+const User = require("./models/user_model")
+
+async function register(name, email, password, role) {
+    await delay(400);
+
+    if (!name || !email || !password || !role) {
+        throw "Please provide all the details";
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+        throw "Account already exists. Please login!";
+    }
+
+    const user = User.create({
+        name,
+        email,
+        password,
+        balance: 500,
+        role
+    });
+
+
+    // remove password before sending response
+    const { password: pws, ...safeUser } = user.toObject();
+
+
+    return safeUser;
+}
 
 
 
 async function login(email, password) {
     await delay(400);
 
-    const user = users.find(
+    const user = localUsers.find(
         u => u.email == email && u.password == password
     );
 
     if (!user) {
         throw "Invalid email or password";
     }
+    // remove password safely
+    // const { password, ...safeUser } = user;
 
     return user;
 }
@@ -21,7 +53,7 @@ async function login(email, password) {
 async function getProfile(userId) {
     await delay(400);
 
-    const user = users.find(u => u.id === userId);
+    const user = localUsers.find(u => u.id === userId);
     if (!user) {
         throw "User not found";
     }
@@ -35,8 +67,8 @@ async function getProfile(userId) {
 async function transferMoney(senderUserId, receiverId, amount) {
     await delay(400);
 
-    const sender = users.find(u => u.id === senderUserId);
-    const receiver = users.find(u => u.id === receiverId);
+    const sender = localUsers.find(u => u.id === senderUserId);
+    const receiver = localUsers.find(u => u.id === receiverId);
 
     if (!sender) throw "Sender not found";
     if (!receiver) throw "Receiver not found";
@@ -64,8 +96,8 @@ async function transferMoney(senderUserId, receiverId, amount) {
 
 // async function transferMoney(senderUserId, receiverId, amount) {
 //     await delay(400);
-//     const sender = users.find(u => u.id === senderUserId)
-//     const receiver = users.find(u => u.id === receiverId)
+//     const sender = localUsers.find(u => u.id === senderUserId)
+//     const receiver = localUsers.find(u => u.id === receiverId)
 //     if (!sender) {
 //         throw "Sender not Available"
 //     }
@@ -94,5 +126,5 @@ function delay(ms) {
 
 
 module.exports = {
-    login, getProfile, transferMoney
+    login, getProfile, transferMoney, register
 }
