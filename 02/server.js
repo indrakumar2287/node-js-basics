@@ -33,7 +33,7 @@ async function startServer() {
                 password,
                 role);
 
-            console.log("Register success:", user.id);
+            console.log("Register success:", user._id.toString());
             res.json({ success: true, user });
 
         } catch (err) {

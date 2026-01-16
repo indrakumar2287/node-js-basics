@@ -10,12 +10,11 @@ async function register(name, email, password, role) {
     }
 
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
         throw "Account already exists. Please login!";
     }
 
-    const user = User.create({
+    const user = await User.create({
         name,
         email,
         password,
@@ -23,13 +22,12 @@ async function register(name, email, password, role) {
         role
     });
 
-
-    // remove password before sending response
-    const { password: pws, ...safeUser } = user.toObject();
-
+    // remove password safely
+    const { password: _pw, ...safeUser } = user.toObject();
 
     return safeUser;
 }
+
 
 
 
