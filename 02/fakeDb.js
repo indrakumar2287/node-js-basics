@@ -1,6 +1,6 @@
 // fakeDb.js
 
-const users = [
+var users = [
     {
         id: 1,
         name: "Indra",
