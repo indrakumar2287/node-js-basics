@@ -1,15 +1,14 @@
 const express = require("express");
 const connectDB = require("./db");
 const User = require("./models/user_model");
-
-// const { login, getProfile, transferMoney, register } = require("./api_local");
-const { login, getProfile, transferMoney, register } = require("./apis")
+const auth = require("./middleware/auth")
+const { login, getProfile, transferMoney, register, getUsersList } = require("./apis")
 
 async function startServer() {
     await connectDB();
 
-    const users = await User.find();
-    console.log("Users from DB:", users);
+    // const users = await User.find();
+    // console.log("Users from DB:", users);
 
     const app = express();
     app.use(express.json());
@@ -48,10 +47,10 @@ async function startServer() {
             console.log("Login attempt:", req.body.email);
 
             const { email, password } = req.body;
-            const user = await login(email, password);
+            const result = await login(email, password);
 
-            console.log("Login success:", user.id);
-            res.json({ success: true, user });
+            console.log("Login success:");
+            res.json({ success: true, ...result });
 
         } catch (err) {
             console.log("Login failed:", err);
@@ -59,16 +58,25 @@ async function startServer() {
         }
     });
 
-    app.get("/profile/:id", async (req, res) => {
+    app.get("/profile/:id", auth, async (req, res) => {
         try {
-            const user = await getProfile(Number(req.params.id));
+            const user = await getProfile(req.params.id);
             res.json({ success: true, user });
         } catch (err) {
             res.status(404).json({ success: false, message: err });
         }
     });
 
-    app.post("/transfer", async (req, res) => {
+    app.get("/get-users-list", async (req, res) => {
+        try {
+            const userList = await getUsersList();
+            res.json({ success: true, userList });
+        } catch (err) {
+            res.status(404).json({ success: false, message: err });
+        }
+    });
+
+    app.post("/transfer", auth, async (req, res) => {
         try {
             const { from, to, amount } = req.body;
             const result = await transferMoney(from, to, amount);
